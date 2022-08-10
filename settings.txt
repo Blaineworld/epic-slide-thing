@@ -1,0 +1,4 @@
+time between reloads: 2:00:00
+time for each image: 1:30
+
+show file names: NO
