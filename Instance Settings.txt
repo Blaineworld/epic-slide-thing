@@ -1,0 +1,3 @@
+backup video drivers: fbcon, directfb, svgalib, xvfb, Xvfb, x11
+path to remote folder: ./files
+show debug info: NO

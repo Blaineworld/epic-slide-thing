@@ -1,0 +1,2 @@
+show slide numbers: YES
+time to show each image: 0:45
