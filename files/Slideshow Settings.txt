@@ -1,2 +1,6 @@
 show slide numbers: YES
 time to show each image: 0:45
+background color: #000000
+show status bar: YES
+status bar background color: #000000
+status bar text color: #FFFCF0

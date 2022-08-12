@@ -43,19 +43,19 @@ def load_settings(path, settings):
                     values[key] = settings[key][0](line[colon + 1:].strip())
                 except:
                     values[key] = settings[key][0](settings[key][1])
-                    log.out("Invalid value for setting `" + key + "` in `" + os.path.basename(path) + "`!")
+                    log.out("Malformed value for setting `" + key + "` in `" + os.path.basename(path) + "`!\nDelete the setting and re-run the slideshow\nto reset it to `" + settings[key][1] + "`.", log.C_WARNING)
 
     file.close()
 
     # Add the other settings to the file.
     file = open(path, "a")
-    added_anything = False
+    addedAnything = False
     for key in settings:
         if not (key in values):
             file.write("\n" + key + ": " + settings[key][1])
             values[key] = settings[key][0](settings[key][1])
-            added_anything = True
-    if added_anything:
+            addedAnything = True
+    if addedAnything:
         file.write("\n")
     file.close()
 
@@ -73,6 +73,15 @@ def parse_polar(string):
     if string == "NO":
         return False
     raise ValueError("Expected `YES` or `NO`, but got `" + string + "`.")
+
+def parse_percentage(string):
+    # Parses a percentage.
+    # Returns it as a float where 0% = 0 and 100% = 1.
+
+    if string[-1] == "%":
+        string = string[:-1]
+
+    return float(string) / 100
 
 def parse_list(string):
     # Parses a comma-separated list of strings.
@@ -94,3 +103,15 @@ def parse_duration(string):
         total += float(sections[i]) * multiplier
         multiplier *= 60
     return total
+
+def parse_color(string):
+    # Parses a hex code for a color.
+    # Returns a tuple containing red, green, and blue values.
+
+    if string[0] == "#":
+        string = string[1:]
+    if len(string) == 6:
+        return (int(string[0:2], 16), int(string[2:4], 16), int(string[4:6], 16))
+    if len(string) == 3:
+        return (int(string[0], 16), int(string[1], 16), int(string[2], 16))
+    raise ValueError("Color code must be 3 or 6 characters long; got " + len(string) + ".")

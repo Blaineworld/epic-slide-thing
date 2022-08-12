@@ -6,10 +6,15 @@ instance = config.load_settings("./Instance Settings.txt", {
     "backup video drivers": (config.parse_list, "fbcon, directfb, svgalib, xvfb, Xvfb, x11"),
     "path to remote folder": (str, "./files"),
     "show debug info": (config.parse_polar, "NO"),
+    "status bar size": (config.parse_percentage, "8%")
 })
 
 # Load the slideshow settings.
 slideshow = config.load_settings(instance["path to remote folder"] + "/Slideshow Settings.txt", {
+    "time to show each image": (config.parse_duration, "0:45"),
     "show slide numbers": (config.parse_polar, "YES"),
-    "time to show each image": (config.parse_duration, "0:45")
+    "background color": (config.parse_color, "#000000"),
+    "show status bar": (config.parse_polar, "YES"),
+    "status bar background color": (config.parse_color, "#000000"),
+    "status bar text color": (config.parse_color, "#FFFCF0")
 })
