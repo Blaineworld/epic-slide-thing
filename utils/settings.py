@@ -11,7 +11,8 @@ instance = config.load_settings("./Instance Settings.txt", {
 
 # Load the slideshow settings.
 slideshow = config.load_settings(instance["path to remote folder"] + "/Slideshow Settings.txt", {
-    "time to show each image": (config.parse_duration, "0:45"),
+    "time for each slide": (config.parse_duration, "0:45"),
+    "time for each transition": (config.parse_duration, "0:05"),
     "show slide numbers": (config.parse_polar, "YES"),
     "background color": (config.parse_color, "#000000"),
     "show status bar": (config.parse_polar, "YES"),

@@ -15,11 +15,11 @@ mean I've finished working on it. These aren't all the features the program will
 ever have either.
 
 - documentation
-- slide transitions
+- slide transitions ✔
 - status bar for info such as class periods
 - easily understandable configuration files ✔
 - local and remote error logging
 - a system to schedule and filter images ahead-of-time
-- a system to tailor information to specific instances
+- a system to tailor statuses to specific instances
 - a debug screen, kinda like Minecraft
-- simple keyboard shortcuts such as toggling the debug screen and halting
+- simple keyboard shortcuts such as toggling the debug screen and halting ✔

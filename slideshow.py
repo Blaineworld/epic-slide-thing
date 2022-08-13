@@ -1,6 +1,5 @@
 import pygame, os, sys, time
 
-# Welcome message.
 print("\n(Press [Escape] to stop the slideshow.)\n")
 
 import utils.log as log
@@ -13,7 +12,6 @@ try:
     log.out("Used the default video driver.", log.C_INFO)
 except pygame.error:
     # Try to use one of the backup video drivers.
-
     found = False
 
     for driver in settings.instance["backup video drivers"]:
@@ -36,11 +34,11 @@ except pygame.error:
 pygame.init()
 displayInfo = pygame.display.Info()
 clock = pygame.time.Clock()
-display = pygame.display.set_mode((displayInfo.current_w, displayInfo.current_h), pygame.FULLSCREEN, pygame.NOFRAME)
-pygame.mouse.set_visible(False)
 
 # Calculate sizes and positions for the screen and stuff.
-statusSize = displayInfo.current_h * settings.instance["status bar size"]
+statusSize = 0
+if settings.slideshow["show status bar"]:
+    statusSize = displayInfo.current_h * settings.instance["status bar size"]
 picWidth = displayInfo.current_w
 picHeight = displayInfo.current_h - statusSize
 picCenterX = picWidth / 2
@@ -84,9 +82,49 @@ if len(pictures) == 0:
 
 log.out("Loaded " + str(len(pictures)) + " images.", log.C_INFO)
 
+log.out("Going fullscreen!", log.C_INFO)
+
+# Go fullscreen.
+display = pygame.display.set_mode((displayInfo.current_w, displayInfo.current_h), pygame.FULLSCREEN, pygame.NOFRAME)
+pygame.mouse.set_visible(False)
+
+# Store render settings in variables for speed and resiliance.
+BACKGROUND_COLOR = settings.slideshow["background color"]
+SLIDE_DURATION = settings.slideshow["time for each slide"] or sys.float_info.min
+TRANSITION_DURATION = settings.slideshow["time for each transition"] or sys.float_info.min
+
 # Stuff for rendering.
 index = 0
 renderer = renderers.static
+renderStart = time.monotonic()
+renderDuration = SLIDE_DURATION
+
+def nextSlide():
+    global index
+    global renderer
+    global renderStart
+    global renderDuration
+    global renderFinishHook
+
+    index = (index + 1) % len(pictures)
+    renderer = renderers.fade_through_black
+    renderStart = time.monotonic()
+    renderDuration = TRANSITION_DURATION
+    renderFinishHook = finishTransition
+
+def finishTransition():
+    global renderer
+    global renderStart
+    global renderEnd
+    global renderDuration
+    global renderFinishHook
+
+    renderer = renderers.static
+    renderStart = time.monotonic()
+    renderDuration = SLIDE_DURATION
+    renderFinishHook = nextSlide
+    
+renderFinishHook = nextSlide
 
 # "Game" loop.
 running = True
@@ -98,18 +136,28 @@ while running:
             running = False
             pygame.quit()
             sys.exit()
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            log.out("Quit via the Escape key.", log.C_INFO)
-            running = False
-            pygame.quit()
-            sys.exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                log.out("Quit via the Escape key.", log.C_INFO)
+                running = False
+                pygame.quit()
+                sys.exit()
+            elif event.key == pygame.K_n:
+                index = (index + 1) % len(pictures)
+
+    # Calculate progress.
+    progress = min(1.0, (time.monotonic() - renderStart) / renderDuration)
 
     # Render the picture.
-    display.fill(settings.slideshow["background color"])
-    renderer(0.5, display, pictures[index], pictures[index - 1], picCenterX, picCenterY)
+    display.fill(BACKGROUND_COLOR)
+    renderer(progress, display, pictures[index], pictures[index - 1], picCenterX, picCenterY)
 
     # Update the display.
     pygame.display.update()
+
+    # Finish using this renderer if necessary.
+    if progress == 1.0:
+        renderFinishHook()
 
     # Tick.
     clock.tick(60)
