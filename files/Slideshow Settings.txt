@@ -1,6 +1,8 @@
 time for each slide: 0:45
-time for each transition: 0:05
+randomize order: YES
+time for each transition: 0:00.75
+possible transitions: all
 show slide numbers: YES
 background color: #000000
-show status bar: YES
-status bar text color: #FFFCF0
+show status: YES
+status color: #FFF0E8

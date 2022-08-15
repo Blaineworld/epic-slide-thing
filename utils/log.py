@@ -20,5 +20,5 @@ def out(text, categories = C_INFO):
 
     if categories & local_categories:
         file = open("./Local Log.txt", "a")
-        file.write("\n" + text + "\n")
+        file.write(f"\n{text}\n")
         file.close()

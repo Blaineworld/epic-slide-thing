@@ -43,7 +43,7 @@ def load_settings(path, settings):
                     values[key] = settings[key][0](line[colon + 1:].strip())
                 except:
                     values[key] = settings[key][0](settings[key][1])
-                    log.out("Malformed value for setting `" + key + "` in `" + os.path.basename(path) + "`!\nDelete the setting and re-run the slideshow\nto reset it to `" + settings[key][1] + "`.", log.C_WARNING)
+                    log.out(f"Malformed value for setting `{key}` in `{os.path.basename(path)}`!\nDelete the setting and re-run the slideshow\nto reset it to `{settings[key][1]}`.", log.C_WARNING)
 
     file.close()
 
@@ -52,7 +52,7 @@ def load_settings(path, settings):
     addedAnything = False
     for key in settings:
         if not (key in values):
-            file.write("\n" + key + ": " + settings[key][1])
+            file.write(f"\n{key}: {settings[key][1]}")
             values[key] = settings[key][0](settings[key][1])
             addedAnything = True
     if addedAnything:
@@ -72,7 +72,7 @@ def parse_polar(string):
         return True
     if string == "NO":
         return False
-    raise ValueError("Expected `YES` or `NO`, but got `" + string + "`.")
+    raise ValueError(f"Expected `YES` or `NO`, but got `{string}`.")
 
 def parse_percentage(string):
     # Parses a percentage.
@@ -114,4 +114,4 @@ def parse_color(string):
         return (int(string[0:2], 16), int(string[2:4], 16), int(string[4:6], 16))
     if len(string) == 3:
         return (int(string[0], 16), int(string[1], 16), int(string[2], 16))
-    raise ValueError("Color code must be 3 or 6 characters long; got " + len(string) + ".")
+    raise ValueError("Color code must be 3 or 6 characters long; got {len(string)}.")

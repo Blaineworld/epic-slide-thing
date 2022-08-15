@@ -1,4 +1,4 @@
-import pygame, math, os, sys, time
+import pygame, math, os, random, sys, time
 
 print("\n(Press [Escape] to stop the slideshow.)\n")
 
@@ -19,7 +19,7 @@ except pygame.error:
         try:
             pygame.display.init()
             found = True
-            log.out("Used the video driver `" + driver + "`.", log.C_INFO)
+            log.out(f"Used the video driver `{driver}`.", log.C_INFO)
         except pygame.error:
             continue
         break
@@ -36,17 +36,17 @@ displayInfo = pygame.display.Info()
 clock = pygame.time.Clock()
 
 # Calculate sizes and positions for the screen and stuff.
-statusSize = 0
-if settings.slideshow["show status bar"]:
-    statusSize = displayInfo.current_h * settings.instance["status bar size"]
+STATUS_SIZE = 0
+if settings.slideshow["show status"]:
+    STATUS_SIZE = int(displayInfo.current_h * settings.instance["status size"])
 PIC_WIDTH = displayInfo.current_w
-PIC_HEIGHT = displayInfo.current_h - statusSize
+PIC_HEIGHT = displayInfo.current_h - STATUS_SIZE
 PIC_CENTER_X = PIC_WIDTH / 2
 PIC_CENTER_Y = PIC_HEIGHT / 2
 
 # This class abstracts images.
 class Picture:
-    def scale(self, size):
+    def resize(self, size):
         # Scales the image (smoothly if possible).
         if self.bytesize > 2:
             return pygame.transform.smoothscale(self.surface, size)
@@ -91,16 +91,18 @@ for name in names:
     try:
         pictures.append(Picture(pygame.image.load(folder + "/" + name), name))
     except (pygame.error, ValueError):
-        log.out("The image `" + name + "`\nfailed to load.", log.C_ISSUE)
+        log.out(f"The image `{name}`\nfailed to load.", log.C_ISSUE)
 del names
 del folder
+if settings.slideshow["randomize order"]:
+    random.shuffle(pictures)
 
 if len(pictures) == 0:
     log.out("No images could be loaded!", log.C_ISSUE | log.C_CRITICAL)
     pygame.quit()
     sys.exit()
 
-log.out("Loaded " + str(len(pictures)) + " images.", log.C_INFO)
+log.out(f"Loaded {len(pictures)} images.", log.C_INFO)
 
 log.out("Going fullscreen.", log.C_INFO)
 
@@ -119,6 +121,28 @@ displayPicture.right = PIC_WIDTH
 BACKGROUND_COLOR = settings.slideshow["background color"]
 SLIDE_DURATION = settings.slideshow["time for each slide"] or sys.float_info.min
 TRANSITION_DURATION = settings.slideshow["time for each transition"] or sys.float_info.min
+MAX_FPS = settings.instance["max fps"]
+possibleTransitions = []
+names = settings.slideshow["possible transitions"]
+if settings.slideshow["possible transitions"] == ["all"]:
+    names = renderers.transitions.keys()
+for name in names:
+    name = name.lower()
+    if name in renderers.transitions:
+        possibleTransitions.append(renderers.transitions[name])
+    else:
+        log.out(f"Unknown transition: `{name}`.", log.C_ISSUE)
+del name
+del names
+
+# Stuff for the status.
+def generate_status():
+    return "status text goes here."
+
+STATUS_FONT = pygame.font.SysFont(None, int(STATUS_SIZE * 1.4))
+STATUS_COLOR = settings.slideshow["status color"]
+statusText = generate_status()
+statusSurface = STATUS_FONT.render(statusText, True, STATUS_COLOR)
 
 # Stuff for rendering.
 index = 0
@@ -126,7 +150,7 @@ renderer = renderers.static
 renderStart = time.monotonic()
 renderDuration = SLIDE_DURATION
 
-def nextSlide():
+def next_slide():
     global index
     global renderer
     global renderStart
@@ -134,12 +158,12 @@ def nextSlide():
     global renderFinishHook
 
     index = (index + 1) % len(pictures)
-    renderer = renderers.fade_through_black
+    renderer = random.choice(possibleTransitions)
     renderStart = time.monotonic()
     renderDuration = TRANSITION_DURATION
-    renderFinishHook = finishTransition
+    renderFinishHook = finish_transition
 
-def finishTransition():
+def finish_transition():
     global renderer
     global renderStart
     global renderEnd
@@ -149,9 +173,9 @@ def finishTransition():
     renderer = renderers.static
     renderStart = time.monotonic()
     renderDuration = SLIDE_DURATION
-    renderFinishHook = nextSlide
+    renderFinishHook = next_slide
     
-renderFinishHook = nextSlide
+renderFinishHook = next_slide
 
 # "Game" loop.
 running = True
@@ -183,6 +207,13 @@ while running:
     display.fill(BACKGROUND_COLOR)
     renderer(progress, displayPicture, pictures[index], pictures[index - 1])
 
+    # Render the status.
+    oldStatusText = statusText
+    statusText = generate_status()
+    if statusText != oldStatusText:
+        statusSurface = STATUS_FONT.render(statusText, True, STATUS_COLOR)
+    display.blit(statusSurface, (0, PIC_HEIGHT))
+
     # Update the display.
     pygame.display.update()
 
@@ -191,4 +222,4 @@ while running:
         renderFinishHook()
 
     # Tick.
-    clock.tick(60)
+    clock.tick(MAX_FPS)
