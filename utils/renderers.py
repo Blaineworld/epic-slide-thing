@@ -3,29 +3,29 @@
 
 import pygame
 
-def static(progress, display, new, old, cx, cy):
+def static(progress, display, new, old):
     # This renderer is used when there is no transition going on.
     # It just draws the image with no other calculations.
-    display.blit(new.surface, (cx - new.halfWidth, cy - new.halfHeight))
+    display.surface.blit(new.surface, (new.left, new.top))
 
-def fade(progress, display, new, old, cx, cy):
+def fade(progress, display, new, old):
     old.surface.set_alpha(int(255 * (1 - progress)))
-    display.blit(old.surface, (cx - old.halfWidth, cy - old.halfHeight))
+    display.surface.blit(old.surface, (new.left, new.top))
     old.surface.set_alpha(255)
 
     new.surface.set_alpha(int(255 * progress))
-    display.blit(new.surface, (cx - new.halfWidth, cy - new.halfHeight))
+    display.surface.blit(new.surface, (new.left, new.top))
     new.surface.set_alpha(255)
 
-def fade_through_black(progress, display, new, old, cx, cy):
+def fade_through_black(progress, display, new, old):
     if progress < 0.5:
         old.surface.set_alpha(int(255 * (1 - progress / 0.5)))
-        display.blit(old.surface, (cx - old.halfWidth, cy - old.halfHeight))
+        display.surface.blit(old.surface, (old.left, old.top))
         old.surface.set_alpha(255)
 
     if progress > 0.5:
         new.surface.set_alpha(int(255 * ((progress - 0.5) / 0.5)))
-        display.blit(new.surface, (cx - new.halfWidth, cy - new.halfHeight))
+        display.surface.blit(new.surface, (new.left, new.top))
         new.surface.set_alpha(255)
 
 # This is the aforementioned dictionary.
